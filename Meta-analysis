@@ -295,3 +295,4 @@ Formulario_ext$Outcome_rep
 #para sacar una dt solo con los datos de resultado 
 Data <- Formulario_ext[, c("ID_study","Comparisons", "Outcome_ag","Outcome_rep", "Included_E", "Included_C", "Events_E", "Events_C", "Incidence_E", "Incidence_C", "Association_measure", "Est_crude", "CI_L", "CI_U", "Est_a", "CI_La", "CI_Ua", "IA_E", "IA_C")]
 names(Formulario_ext)
+#Subir archivos github

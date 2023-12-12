@@ -1,30 +1,31 @@
-#########ENFERMEDAD AUTOINMUNE / SARS-COV-2#################
+#########            ENFERMEDAD AUTOINMUNE / SARS-COV-2       #################
 
-# PAra saber en qué directorio estoy trabajando 
+# Para saber en qué directorio estoy trabajando 
 getwd()
 
-#Para cambiar la ubicación del directorio a la carpeta donqe quiero guardar lo
-#trabajado usar setwd("ubicación destino").
+#Para cambiar la ubicación del directorio a la carpeta donqe quiero guardar 
+#usar: setwd("ubicación destino").
 setwd("C:/Users/Ana Milena/OneDrive/Escritorio/AGORA/RSL LONG covid")
 
-#Para Cargar las librerias que se requieren 
-
+#Para instalar y Cargar las librerias que se requieran 
+#1
 install.packages("magrittr") 
 install.packages("dplyr") 
+#2
 library(magrittr) 
 library(dplyr) 
 library(meta)
 library(metafor)
+library(readxl)
 
+#Para cambiar valores especificos de una columna del dataframe 
+#Usar: objeto[#fila,#columna] <- "nuevo valor"
 
 #Para cambiar valores especificos de una columna del dataframe
-#objeto[#fila,#columna] <- "nuevo valor"
-
-#Para cambiar valores especificos de una columna del dataframe
-#Primero se verifica el numero de fila y columnas que se desean cambiar
-names(Formulario_ext)
-Formulario_ext$Outcome_ag
-#Modificar los valores coon: objeto[#fila,#columna] <- "nuevo valor"
+#1 Verifica el numero de fila y columnas que se desean cambiar
+names(Formulario_ext) #Fila
+Formulario_ext$Outcome_ag #Columna 
+#2 Modificar los valores coon: objeto[#fila,#columna] <- "nuevo valor"
 Formulario_ext[40,61] <- "Vasculitis"
 Formulario_ext[24,61] <- "Enfermedades autoinmunes del sistema nervioso central"
 
@@ -34,20 +35,20 @@ rm(Alopecia_areata)
 rm(Anemia_hemolítica) 
 rm(Diabetes_mellitus_1PI) 
 
-#----------------------Base modificada--------------------------------------#
-#---------------------------------------------------------------------------#
+#------------------------Base modificada--------------------------------------#
+#-----------------------------------------------------------------------------#
 
 #Para que cargue la base de extracción de datos completa instalar readxl
 library(readxl)
 
-#PAra que lea elarchivo 
+#Para que lea elarchivo 
 Formulario_ext <- read_excel("C:/Users/Ana Milena/OneDrive/Escritorio/AGORA/RSL LONG covid/R/Formulario_ext.xlsx")
 
-#Para explorar la estructura del data frame usar la función str(objeo)
+#Para explorar la estructura del data frame usar: str(objeto)
 str(Formulario_ext)
 
 #Para convertir al formato correcto las variables del dataframe: 
-#objeto$variable a cambiar <-  as.numeric(objeto$variable a cambiar)
+#objeto$variable a cambiar <-  Formato al que se desea cambia ej as.numeric(objeto$variable a cambiar)
 
 Formulario_ext$Women <-  as.numeric(Formulario_ext$Women)
 Formulario_ext$Women_E  <-  as.numeric(Formulario_ext$Women)
@@ -63,33 +64,33 @@ Formulario_ext$Est_crude <-  as.numeric(Formulario_ext$Est_crude)
 Formulario_ext$CI_L <-  as.numeric(Formulario_ext$CI_L)
 Formulario_ext$CI_U <-  as.numeric(Formulario_ext$CI_U)
 
-#Para comprobar el cambio
+#Para comprobar el cambio (explorar la estructura del data frame )
 str(Formulario_ext)
 
 #Para ver los nombres de las columnas del dataframe
 names(Formulario_ext)
 
-#Para cambiar el nombre de alguna columna del dataframe: 
-# names(objeto)[# col] <- "nombre nuevo"
-
+#Para cambiar el nombre de alguna columna del dataframe:
+#1 Verificar el nombre y posición de las columnas
+names(Formulario_ext)  
+#2 Cambaiar nombres. Usar: names(objeto)[# col] <- "nombre nuevo"
 names(Formulario_ext)[61] <- 'Outcome_ag'
 names(Formulario_ext)[62] <- 'Outcome_rep'
 
-#Calcular la incidencia acumulada por grupo y añadirla al DT
-
+#Calcular la incidencia acumulada por grupo y añadirla como nueva columna al DT
 Formulario_ext <- Formulario_ext %>%
   mutate(IA_E = (Events_E / Included_E) * 100,
          IA_C = (Events_C / Included_C) * 100)
 
-#Para crear varios dataframes nuevos, por cada categoria de Outcome_ag 
-#Primero exploro los nombres valores únicos de la variable de interes 
+#Para crear varios dataframes, por cada categoria de Outcome_ag 
+#1 Explorar los nombres de los valores únicos de la variable. 
 unique(Formulario_ext$Outcome_ag) 
 
-#Para saber que outcomes fueron evaluados en más de 1 estudio
+#2 Para saber que outcomes fueron evaluados en más de 1 estudio, se crea una tabla
 tabla <- table(Formulario_ext$Outcome_ag)
 tabla
 
-#Para crear cada DT  
+#Crear los DF  Columna=subset(DF,condición) (Por outcome especifico)
 Espondiloartritis=subset(Formulario_ext,Outcome_ag=="Espondiloartritis")
 DMT1=subset(Formulario_ext,Outcome_ag=="Diabetes mellitus Tipo 1")
 DMT1PP=subset(Formulario_ext,Outcome_ag=="Diabetes mellitus Tipo 1 PP")
@@ -105,7 +106,7 @@ Sjögrens=subset(Formulario_ext,Outcome_ag=="Sjögren's syndrome")
 Vasculitis=subset(Formulario_ext,Outcome_ag=="Vasculitis")
 AR=subset(Formulario_ext,Outcome_ag=="Artritis reumatoide")
 
-#modificar DF diabetes excluyendo observaciones
+#Modificar DF diabetes excluyendo observaciones
 DMT1=subset(DMT1,!(ID_study =="Zareini, 2023"))
 
 #Modificar DF Guillain Barré excluyendo observaciones
@@ -119,7 +120,11 @@ AR=subset(AR,!(ID_study =="Chevinsky, 2021"))
 #Modificar DF EASNC excluyendo observaciones
 EASNC=subset(EASNC,!(ID_study =="Xu, 2022"))
 
+#################              Metanálisis             #########################
+################################################################################
+
 #Metanálisis de efectos aleatorios por enfermedad
+
 #1   Behcet="Enfermedad de Behcet"
 metabin(Behcet$Events_E, Behcet$Included_E, Behcet$Events_C, Behcet$Included_C, EB=Behcet, sm="RR", method="MH", studlab=paste(Behcet$ID_study), comb.fixed = T,comb.random = T)
 
@@ -170,8 +175,7 @@ metabin(EASNC$Events_E, EASNC$Included_E, EASNC$Events_C, EASNC$Included_C, EB=E
  
 
 ##Metanálisis incluyendo casos con medicación
-#Para crear una copia de los DT que incluyan los casos conmedicación del estudio de tesh 
-#Primero se hace la copia
+#1 Crear una copia de los DF que incluyan los casos con medicación del estudio de tesh 
 AR_m <- AR
 Behcet_m <- Behcet
 EII_m <- EII
@@ -183,12 +187,13 @@ Psoriasis_m <- Psoriasis
 Sjögrens_m <- Sjögrens
 Vasculitis_m <- Vasculitis
 
-#Segundo se cambian los valores correspondientes a las variables de resultado
-#Para saber el numero de fila que se desea modificar en cada DT
+#2 Cambiar los valores correspondientes a las variables de resultado
+#Para saber el numero de fila que se desea modificar en cada DF
 names(AR_m)
 names(Psoriasis_m)
 #etc
-#Modificar los valores
+
+#3 Modificar los valores
 
 #3 alternativas 
 # 1      #(sale error)?
@@ -266,6 +271,7 @@ Vasculitis_m[3, c("Events_E", "Events_C", "Incidence_E", "Incidence_C", "Est_a",
 
 
 #Metanálisis de efectos aleatorios por enfermedad inclyedo casos con medicación del estudio de Tesh 
+
 #2   Espondiloartritis ="Espondiloartritis"
 metabin(Espondiloartritis_m$Events_E, Espondiloartritis_m$Included_E, Espondiloartritis_m$Events_C, Espondiloartritis_m$Included_C, EB=Espondiloartritis_m, sm="RR", method="MH", studlab=paste(Espondiloartritis_m$ID_study), comb.fixed = T,comb.random = T)
 
@@ -290,9 +296,166 @@ metabin(Vasculitis_m$Events_E, Vasculitis_m$Included_E, Vasculitis_m$Events_C, V
 #6  Artritis reumatoide
 metabin(AR_m$Events_E, AR_m$Included_E, AR_m$Events_C, AR_m$Included_C, EB=AR_m, sm="RR", method="MH", studlab=paste(AR_m$ID_study), comb.fixed = T,comb.random = T)
 
-Formulario_ext$Outcome_rep
+########################          DATA            #################################
 
 #para sacar una dt solo con los datos de resultado 
 Data <- Formulario_ext[, c("ID_study","Comparisons", "Outcome_ag","Outcome_rep", "Included_E", "Included_C", "Events_E", "Events_C", "Incidence_E", "Incidence_C", "Association_measure", "Est_crude", "CI_L", "CI_U", "Est_a", "CI_La", "CI_Ua", "IA_E", "IA_C")]
-names(Formulario_ext)
-#Subir archivos github
+
+
+########################GRAFICAS ANÄLISIS DESCITPRIVO#################################
+
+#Crear un nuevo data frame por tipo de metrica 
+
+DataHR=subset(Data,Association_measure=="adjusted hazard ratio (aHRs)")
+DataIRR=subset(Data,Association_measure=="incidence rate ratios (IRRs)")
+
+##Concatenar el estudio y el desenlace y añadirlo como nueva columna DF HR
+DataHR$ID_forrest <- paste(DataHR$Outcome_rep, DataHR$ID_study, sep = " / ")
+DataHR$IC <- paste(DataHR$CI_La, DataHR$CI_Ua, sep = " - ")
+
+#Cambiar valores especificos de una columna del dataframe
+#Primero se verifica el numero de fila y columnas que se desean cambiar
+DataHR$ID_study
+#Modificar los valores coon: objeto[#Columna,#Fila] <- "nuevo valor"
+DataHR[15,1] <- "Mizrahi, 2023F1"
+DataHR[16,1] <- "Mizrahi, 2023F2"
+#Ordenar el dt por orden alfabetico segun la condición/estudio
+DataHR <- DataHR[order(DataHR$ID_forrest), ]
+
+#Añadir una columna al dt con el index 
+DataHR$Index <- seq_len(nrow(DataHR))
+
+##Concatenar el estudio y el desenlace y añadirlo como nueva columna DF IRR
+DataIRR$ID_forrest <- paste(DataIRR$Outcome_rep, DataIRR$ID_study, sep = " / ")
+DataIRR$IC <- paste(DataIRR$CI_La, DataIRR$CI_Ua, sep = " - ")
+
+#Ordenar el dt por orden alfabetico segun la condición/estudio DF IRR
+DataIRR <- DataIRR[order(DataIRR$ID_forrest), ]
+
+#Añadir una columna al dt con el index DF IRR
+DataIRR$Index <- seq_len(nrow(DataIRR))
+##Forrest plot resultados descriptivos"
+
+#########################Forrest plot resultados descriptivos####################
+
+install.packages("ggplot2") 
+install.packages("gridExtra") 
+library(ggplot2)
+library(gridExtra)
+
+#Grafica resultados HR
+
+plot1 <- ggplot(DataHR, aes(y = Index, x = Est_a)) +
+  geom_point(shape = 18, size = 3) +  
+  geom_errorbarh(aes(xmin = CI_La, xmax = CI_Ua), height = 0.25) +
+  geom_vline(xintercept = 1, color = "red", linetype = "dashed", cex = 1, alpha = 0.5) +
+  scale_y_continuous(name = "", breaks=1:20, labels = DataHR$ID_forrest, trans = "reverse") +
+  xlab("Hazard Ratio (95% CI)") + 
+  ylab(" ") + 
+  labs(y = "Condition / Study") +
+  theme_bw() +
+  theme(panel.border = element_blank(),
+        panel.background = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(), 
+        axis.line = element_line(colour = "black"),
+        axis.text.y = element_text(size = 12, colour = "black"),
+        axis.text.x.bottom = element_text(size = 12, colour = "black"),  
+        axis.title.x = element_text(size = 12, colour = "black", face = "bold")) # Ajuste para hacer la etiqueta del eje x en negrita
+
+plot1
+
+## Create the table-base pallete
+table_base <- ggplot(DataHR, aes(y=ID_forrest)) +
+  ylab(NULL) + xlab("  ") + 
+  theme(plot.title = element_text(hjust = 0.5, size=12), 
+        axis.text.x = element_text(color="white", hjust = -1, size = 30), ## Used para ayudar con la alineación
+        axis.line = element_blank(),
+        axis.text.y = element_blank(), 
+        axis.ticks = element_blank(),
+        axis.title.y = element_blank(), 
+        legend.position = "none",
+        panel.background = element_blank(), 
+        panel.border = element_blank(), 
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), 
+        plot.background = element_blank())
+
+## HR point estimate table
+tab1 <- table_base + 
+  labs(title = "space") +
+  geom_text(aes(y = rev(Index), x = 1, label = sprintf("%0.1f", round(Est_a, digits = 1))), size = 4) +
+  theme(plot.title = element_text(face = "bold")) +
+  ggtitle("HR")
+
+## 95% CI table
+tab2 <- table_base +
+  geom_text(aes(y = rev(Index), x = 1, label = IC), size = 4) + 
+  theme(plot.title = element_text(face = "bold")) +
+  ggtitle("95% CI")
+
+## Merge tables with plot
+lay <-  matrix(c(1,1,1,1,1,1,1,1,1,1,2,3,3), nrow = 1)
+grid.arrange(plot1, tab1, tab2, layout_matrix = lay)
+
+
+#Grafica resultados IRR
+
+plot2 <- ggplot(DataIRR, aes(y = Index, x = Est_a)) +
+  geom_point(shape = 18, size = 3) +  
+  geom_errorbarh(aes(xmin = CI_La, xmax = CI_Ua), height = 0.25) +
+  geom_vline(xintercept = 1, color = "red", linetype = "dashed", cex = 1, alpha = 0.5) +
+  scale_y_continuous(name = "", breaks=1:25, labels = DataIRR$ID_forrest, trans = "reverse") +
+  xlab("Incidence Rate Ratio (95% CI)") + 
+  ylab(" ") + 
+  labs(y = "Condition / Study") +
+  theme_bw() +
+  theme(panel.border = element_blank(),
+        panel.background = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(), 
+        axis.line = element_line(colour = "black"),
+        axis.text.y = element_text(size = 12, colour = "black"),
+        axis.text.x.bottom = element_text(size = 12, colour = "black"),  
+        axis.title.x = element_text(size = 12, colour = "black", face = "bold")) # Ajuste para hacer la etiqueta del eje x en negrita
+plot2
+
+## Create the table-base pallete
+table_base2 <- ggplot(DataIRR, aes(y=ID_forrest)) +
+  ylab(NULL) + xlab("  ") + 
+  theme(plot.title = element_text(hjust = 0.5, size=12), 
+        axis.text.x = element_text(color="white", hjust = -1, size = 30), ## Used para ayudar con la alineación
+        axis.line = element_blank(),
+        axis.text.y = element_blank(), 
+        axis.ticks = element_blank(),
+        axis.title.y = element_blank(), 
+        legend.position = "none",
+        panel.background = element_blank(), 
+        panel.border = element_blank(), 
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), 
+        plot.background = element_blank())
+
+## HR point estimate table
+tab3 <- table_base2 + 
+  labs(title = "space") +
+  geom_text(aes(y = rev(Index), x = 1, label = sprintf("%0.1f", round(Est_a, digits = 1))), size = 4) +
+  theme(plot.title = element_text(face = "bold")) +
+  ggtitle("IRR")
+
+## 95% CI table
+tab4 <- table_base +
+  geom_text(aes(y = rev(Index), x = 1, label = IC), size = 4) + 
+  theme(plot.title = element_text(face = "bold")) +
+  ggtitle("95% CI")
+
+## Merge tables with plot
+lay2 <-  matrix(c(1,1,1,1,1,1,1,1,1,1,2,3,3), nrow = 1)
+grid.arrange(plot2, tab3, tab4, layout_matrix = lay2)
+
+#Unir los 2 gráficos:
+#install.packages("cowplot")
+library(cowplot)
+
+grid.arrange(plot1, plot2, nrow = 1)
+plot_grid(plot1, plot2, labels = c("A", "B"))  

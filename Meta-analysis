@@ -1,5 +1,4 @@
 #########            ENFERMEDAD AUTOINMUNE / SARS-COV-2       #################
-#Prueba
 
 # Para saber en qué directorio estoy trabajando 
 getwd()
@@ -107,7 +106,7 @@ Sjögrens=subset(Formulario_ext,Outcome_ag=="Sjögren's syndrome")
 Vasculitis=subset(Formulario_ext,Outcome_ag=="Vasculitis")
 AR=subset(Formulario_ext,Outcome_ag=="Artritis reumatoide")
 
-#Modificar DF diabetes excluyendo observaciones
+#Modificar DF diabetes excluyendo observaciones sin información
 DMT1=subset(DMT1,!(ID_study =="Zareini, 2023"))
 
 #Modificar DF Guillain Barré excluyendo observaciones

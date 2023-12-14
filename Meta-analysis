@@ -1,4 +1,5 @@
 #########            ENFERMEDAD AUTOINMUNE / SARS-COV-2       #################
+#Prueba
 
 # Para saber en qué directorio estoy trabajando 
 getwd()
